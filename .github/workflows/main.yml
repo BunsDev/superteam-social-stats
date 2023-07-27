@@ -3,6 +3,7 @@ name: Update Subscribers and Followers
 on:
   schedule:
     - cron: '0 11 * * *' # Runs at 11 AM UTC (12 PM BST)
+  workflow_dispatch:
 
 jobs:
   update:
@@ -23,7 +24,13 @@ jobs:
         run: npx tsc
 
       - name: Run Twitter Followers Script
+        env:
+          TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
         run: node twitterFollowers.js
 
       - name: Run YouTube Subscribers Script
+        env:
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
         run: node ytSubs.js
