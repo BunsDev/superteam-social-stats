@@ -3,5 +3,8 @@
     "airtable": "^0.12.1",
     "axios": "^1.4.0",
     "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.6"
   }
 }
