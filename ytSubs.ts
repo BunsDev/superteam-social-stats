@@ -7,7 +7,6 @@ interface ChannelSubscribers {
 }
 
 const YT_API_KEY = process.env.YT_API_KEY;
-const bearerToken = process.env.TWITTER_BEARER_TOKEN;
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base('appiQY5Sa4fJ0mGYG');
 
 const getChannelSubscribers = async (channelId: string): Promise<string | undefined> => {
@@ -31,11 +30,10 @@ const getChannelSubscribers = async (channelId: string): Promise<string | undefi
     }
 };
 
-const fetchAndUpdateYouTubeSubscribers = async (channelIds: string[], recordIds: string[]): Promise<void> => {
+const fetchAndUpdateYouTubeSubscribers = async (channelData: ChannelSubscribers): Promise<void> => {
     try {
-        for (let i = 0; i < channelIds.length; i++) {
-            const channelId = channelIds[i];
-            const recordId = recordIds[i];
+        for (const channelId in channelData) {
+            const recordId = channelData[channelId];
             const subscriberCount: string | undefined = await getChannelSubscribers(channelId);
 
             base('Countries List').update([
@@ -61,9 +59,27 @@ const fetchAndUpdateYouTubeSubscribers = async (channelIds: string[], recordIds:
     }
 };
 
+const channelData: ChannelSubscribers = {};
 
+base('Countries List').select({
+    view: 'Grid view'
+}).eachPage(
+    function page(records, fetchNextPage) {
+        records.forEach(function (record) {
+            const channelId = record.get('Youtube Channel ID');
+            const recordId = record.id;
+            if (channelId && recordId) {
+                channelData[channelId] = recordId;
+            }
+        });
 
-const recordIds: string[] = ['recdHfrwZYRRbihy1', 'recOl8Sebk6EjY5VS', 'recMLZQnxbJ88dgBx', 'rechGu7UtJn4H0o0H', 'receSh3t0nTEYqJeV'];
-const youtubeChannelIds: string[] = ['UCi-pkXLbm7sqXFhV1NBLUfQ', 'UCJdJ0tgvjaYDogjSDPC_8hQ', 'UCJdJ0tgvjaYDogjSDPC_8hQ', 'UCmORmg2X_qnK4AtGQmzHAWw', 'UChbtjy87e4N28tvlsYg3yOQ'];
-
-fetchAndUpdateYouTubeSubscribers(youtubeChannelIds, recordIds);
+        fetchNextPage();
+    },
+    function done(err) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        fetchAndUpdateYouTubeSubscribers(channelData);
+    }
+);
