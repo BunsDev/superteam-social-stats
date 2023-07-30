@@ -3,7 +3,7 @@ require('dotenv').config();
 const Airtable = require('airtable');
 
 interface Followers {
-  [username: string]: number;
+  [username: string]: string;
 }
 
 const bearerToken = process.env.TWITTER_BEARER_TOKEN;
@@ -28,11 +28,10 @@ const getFollowers = async (username: string): Promise<number> => {
   }
 };
 
-const fetchAndUpdateTwitterFollowers = async (usernames: string[], recordIds: string[]): Promise<void> => {
+const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<void> => {
   try {
-    for (let i = 0; i < usernames.length; i++) {
-      const username = usernames[i];
-      const recordId = recordIds[i];
+    for (const username in usernames) {
+      const recordId = usernames[username];
       const followerCount: number = await getFollowers(username);
 
       base('Countries List').update([
@@ -58,8 +57,7 @@ const fetchAndUpdateTwitterFollowers = async (usernames: string[], recordIds: st
   }
 };
 
-const recordIds: string[] = ['recdHfrwZYRRbihy1', 'recOl8Sebk6EjY5VS', 'recMLZQnxbJ88dgBx', 'rechGu7UtJn4H0o0H', 'receSh3t0nTEYqJeV', 'rec7NwA8Xkcjwi3MB', 'recN0fJoygqWligZR', 'rec3bPgmUCgKarurT'];
-const twitterUsernames: string[] = [];
+const usernames: Followers = {};
 
 base('Countries List').select({
   view: 'Grid view'
@@ -67,8 +65,9 @@ base('Countries List').select({
   function page(records, fetchNextPage) {
     records.forEach(function (record) {
       const username = record.get('Twitter Usernames');
-      if (username) {
-        twitterUsernames.push(username.toString());
+      const recordId = record.id;
+      if (username && recordId) {
+        usernames[username] = recordId;
       }
     });
 
@@ -79,6 +78,6 @@ base('Countries List').select({
       console.error(err);
       return;
     }
-    fetchAndUpdateTwitterFollowers(twitterUsernames, recordIds);
+    fetchAndUpdateTwitterFollowers(usernames);
   }
 );
