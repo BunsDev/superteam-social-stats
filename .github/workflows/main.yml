@@ -34,3 +34,9 @@ jobs:
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
         run: node ytSubs.js
+      
+      - name: Run Discord Members Script
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        run: node discordMembers.js
