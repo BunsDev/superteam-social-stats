@@ -22,14 +22,15 @@ const getMemberCount = async (guildId: string): Promise<number> => {
         const guildInfo: GuildInfo = await res.json();
         return guildInfo.approximate_member_count;
     } catch (error) {
+        console.error(`Error fetching member count for Guild ID: ${guildId}`);
         console.error('Error:', error);
         return 0;
     }
 };
 
 const fetchAndUpdateDiscordMembers = async (guildIds: { [guildId: string]: string }): Promise<void> => {
-    try {
-        for (const guildId in guildIds) {
+    for (const guildId in guildIds) {
+        try {
             const recordId = guildIds[guildId];
             const memberCount: number = await getMemberCount(guildId);
 
@@ -49,10 +50,11 @@ const fetchAndUpdateDiscordMembers = async (guildIds: { [guildId: string]: strin
                     console.log(`Discord Guild ID: ${guildId}, Members: ${record.get('Discord Members')}`);
                 });
             });
+            console.log(`Successfully updated Discord Members for Guild ID: ${guildId}`)
+        } catch (err) {
+            console.log(`Error updating Discord Members for Guild ID: ${guildId}`);
+            console.log(err);
         }
-        console.log('Successfully updated Discord Members')
-    } catch (err) {
-        console.log(err);
     }
 };
 
