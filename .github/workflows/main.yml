@@ -1,4 +1,4 @@
-name: Update Subscribers and Followers
+name: Update Stats
 
 on:
   schedule:
