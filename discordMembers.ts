@@ -34,11 +34,11 @@ const fetchAndUpdateDiscordMembers = async (guildIds: { [guildId: string]: strin
             const recordId = guildIds[guildId];
             const memberCount: number = await getMemberCount(guildId);
 
-            base('Countries List').update([
+            base('Countries').update([
                 {
                     "id": recordId,
                     "fields": {
-                        'Discord Members': memberCount.toString(),
+                        'Discord': memberCount.toString(),
                     }
                 }
             ], function(err, records) {
@@ -47,12 +47,12 @@ const fetchAndUpdateDiscordMembers = async (guildIds: { [guildId: string]: strin
                     return;
                 }
                 records.forEach(function(record) {
-                    console.log(`Discord Guild ID: ${guildId}, Members: ${record.get('Discord Members')}`);
+                    console.log(`Discord Guild ID: ${guildId}, Members: ${record.get('Discord')}`);
                 });
             });
-            console.log(`Successfully updated Discord Members for Guild ID: ${guildId}`)
+            console.log(`Successfully updated Discord for Guild ID: ${guildId}`)
         } catch (err) {
-            console.log(`Error updating Discord Members for Guild ID: ${guildId}`);
+            console.log(`Error updating Discord for Guild ID: ${guildId}`);
             console.log(err);
         }
     }
@@ -60,7 +60,7 @@ const fetchAndUpdateDiscordMembers = async (guildIds: { [guildId: string]: strin
 
 const guildIds: { [guildId: string]: string } = {};
 
-base('Countries List').select({
+base('Countries').select({
     view: 'Grid view'
 }).eachPage(
     function page(records, fetchNextPage) {
