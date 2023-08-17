@@ -34,11 +34,11 @@ const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<voi
       const recordId = usernames[username];
       const followerCount: number = await getFollowers(username);
 
-      base('Countries List').update([
+      base('Countries').update([   // Updated table name here
         {
           "id": recordId,
           "fields": {
-              'Twitter Followers': followerCount.toString(),
+              'Twitter': followerCount.toString(),   // Updated column name here
           }
         }
       ], function(err, records) {
@@ -47,7 +47,7 @@ const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<voi
           return;
         }
         records.forEach(function(record) {
-          console.log(`Twitter username: ${username}, Followers: ${record.get('Twitter Followers')}`);
+          console.log(`Twitter username: ${username}, Followers: ${record.get('Twitter')}`);   // Updated column name here
         });
       });
     }
@@ -59,7 +59,7 @@ const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<voi
 
 const usernames: Followers = {};
 
-base('Countries List').select({
+base('Countries').select({   // Updated table name here
   view: 'Grid view'
 }).eachPage(
   function page(records, fetchNextPage) {
