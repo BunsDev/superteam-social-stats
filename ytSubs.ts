@@ -36,11 +36,11 @@ const fetchAndUpdateYouTubeSubscribers = async (channelData: ChannelSubscribers)
             const recordId = channelData[channelId];
             const subscriberCount: string | undefined = await getChannelSubscribers(channelId);
 
-            base('Countries List').update([
+            base('Countries').update([
                 {
                     "id": recordId,
                     "fields": {
-                        'YouTube Subs': subscriberCount,
+                        'Youtube': subscriberCount,
                     }
                 }
             ], function (err, records) {
@@ -49,11 +49,11 @@ const fetchAndUpdateYouTubeSubscribers = async (channelData: ChannelSubscribers)
                     return;
                 }
                 records.forEach(function (record) {
-                    console.log(`YouTube Channel ID: ${channelId}, Subs: ${record.get('YouTube Subs')}`);
+                    console.log(`Youtube Channel ID: ${channelId}, Subs: ${record.get('Youtube')}`);
                 });
             });
         }
-        console.log('Successfully updated YouTube Subs');
+        console.log('Successfully updated Youtube Subs');
     } catch (err) {
         console.log(err);
     }
@@ -61,7 +61,7 @@ const fetchAndUpdateYouTubeSubscribers = async (channelData: ChannelSubscribers)
 
 const channelData: ChannelSubscribers = {};
 
-base('Countries List').select({
+base('Countries').select({
     view: 'Grid view'
 }).eachPage(
     function page(records, fetchNextPage) {
