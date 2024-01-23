@@ -39,7 +39,7 @@ const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<voi
         {
           "id": recordId,
           "fields": {
-            'Twitter': followerCount 
+            'Twitter': followerCount
           }
         }
       ], function(err, records) {
@@ -48,9 +48,7 @@ const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<voi
           console.error(err);
           return;
         }
-        records.forEach(function(record) {
-          console.log(`Successfully updated Twitter followers for ${username}: ${record.get('Twitter')}`);
-        });
+        console.log(`Successfully updated follower count for ${username}`);
       });
     } catch (err) {
       console.error(`Error processing Twitter username: ${username}`);
@@ -65,6 +63,7 @@ base('Countries').select({
   view: 'Grid view'
 }).eachPage(
   function page(records, fetchNextPage) {
+    console.log(`Processing ${records.length} records in this page.`);
     records.forEach(function (record) {
       const username = record.get('Twitter Usernames');
       const recordId = record.id;
@@ -80,6 +79,7 @@ base('Countries').select({
       console.error("Error during Airtable fetch:", err);
       return;
     }
+    console.log(`Total Twitter usernames fetched: ${Object.keys(usernames).length}`);
     fetchAndUpdateTwitterFollowers(usernames);
   }
 );
