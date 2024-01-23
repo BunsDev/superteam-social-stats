@@ -9,7 +9,7 @@ interface ChannelSubscribers {
 const YT_API_KEY = process.env.YT_API_KEY;
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base('appiQY5Sa4fJ0mGYG');
 
-const getChannelSubscribers = async (channelId: string): Promise<string | undefined> => {
+const getChannelSubscribers = async (channelId: string): Promise<number | undefined> => {
     try {
         const res = await axios.get(
             `https://www.googleapis.com/youtube/v3/channels`,
@@ -22,10 +22,10 @@ const getChannelSubscribers = async (channelId: string): Promise<string | undefi
             }
         );
 
-        const subscriberCount: string = res.data.items[0].statistics.subscriberCount;
+        const subscriberCount: number = parseInt(res.data.items[0].statistics.subscriberCount);
         return subscriberCount;
     } catch (err) {
-        console.log(err);
+        console.error(`Error fetching subscriber count for YouTube Channel ID: ${channelId}`, err);
         return undefined;
     }
 };
@@ -34,28 +34,33 @@ const fetchAndUpdateYouTubeSubscribers = async (channelData: ChannelSubscribers)
     try {
         for (const channelId in channelData) {
             const recordId = channelData[channelId];
-            const subscriberCount: string | undefined = await getChannelSubscribers(channelId);
+            const subscriberCount: number | undefined = await getChannelSubscribers(channelId);
+
+            if (subscriberCount === undefined) {
+                console.error(`Error fetching subscribers for YouTube Channel ID: ${channelId}`);
+                continue; // Skip to next iteration if subscriber count is undefined
+            }
 
             base('Countries').update([
                 {
                     "id": recordId,
                     "fields": {
-                        'Youtube': subscriberCount,
+                        'Youtube': subscriberCount, // Updating subscriber count
                     }
                 }
             ], function (err, records) {
                 if (err) {
-                    console.error(err);
+                    console.error(`Error updating YouTube subscribers for Channel ID: ${channelId}`, err);
                     return;
                 }
                 records.forEach(function (record) {
-                    console.log(`Youtube Channel ID: ${channelId}, Subs: ${record.get('Youtube')}`);
+                    console.log(`YouTube Channel ID: ${channelId}, Subs Updated: ${record.get('Youtube')}`);
                 });
             });
         }
-        console.log('Successfully updated Youtube Subs');
+        console.log('Successfully updated YouTube subscriber counts');
     } catch (err) {
-        console.log(err);
+        console.error('Error in updating YouTube subscriber counts', err);
     }
 };
 
@@ -66,7 +71,7 @@ base('Countries').select({
 }).eachPage(
     function page(records, fetchNextPage) {
         records.forEach(function (record) {
-            const channelId = record.get('Youtube Channel ID');
+            const channelId = record.get('Youtube Channel ID'); // Getting YouTube Channel ID
             const recordId = record.id;
             if (channelId && recordId) {
                 channelData[channelId] = recordId;
@@ -77,7 +82,7 @@ base('Countries').select({
     },
     function done(err) {
         if (err) {
-            console.error(err);
+            console.error('Error during Airtable fetch:', err);
             return;
         }
         fetchAndUpdateYouTubeSubscribers(channelData);
