@@ -39,7 +39,7 @@ const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<voi
         {
           "id": recordId,
           "fields": {
-            'Twitter': followerCount
+            'Twitter': followerCount // Storing the follower count as a number
           }
         }
       ], function(err, records) {
@@ -65,8 +65,9 @@ base('Countries').select({
   function page(records, fetchNextPage) {
     console.log(`Processing ${records.length} records in this page.`);
     records.forEach(function (record) {
-      const username = record.get('Twitter Usernames');
+      const username = record.get('Twitter Username'); // Corrected column name
       const recordId = record.id;
+      console.log(`Found record with ID ${recordId} and username ${username}`);
       if (username && recordId) {
         usernames[username] = recordId;
       }
@@ -80,6 +81,10 @@ base('Countries').select({
       return;
     }
     console.log(`Total Twitter usernames fetched: ${Object.keys(usernames).length}`);
-    fetchAndUpdateTwitterFollowers(usernames);
+    if (Object.keys(usernames).length === 0) {
+      console.log("No usernames found. Please check your Airtable configuration.");
+    } else {
+      fetchAndUpdateTwitterFollowers(usernames);
+    }
   }
 );
