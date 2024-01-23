@@ -23,43 +23,45 @@ const getFollowers = async (username: string): Promise<number> => {
     const followerCount: number = res.data.data.public_metrics.followers_count;
     return followerCount;
   } catch (err) {
-    console.log(err);
+    console.error(`Error fetching followers for Twitter username: ${username}`);
+    console.error(err);
     return 0;
   }
 };
 
 const fetchAndUpdateTwitterFollowers = async (usernames: Followers): Promise<void> => {
-  try {
-    for (const username in usernames) {
-      const recordId = usernames[username];
+  for (const username in usernames) {
+    const recordId = usernames[username];
+    try {
       const followerCount: number = await getFollowers(username);
 
-      base('Countries').update([   // Updated table name here
+      base('Countries').update([
         {
           "id": recordId,
           "fields": {
-              'Twitter': followerCount.toString(),   // Updated column name here
+            'Twitter': followerCount 
           }
         }
       ], function(err, records) {
         if (err) {
+          console.error(`Error updating followers for Twitter username: ${username}`);
           console.error(err);
           return;
         }
         records.forEach(function(record) {
-          console.log(`Twitter username: ${username}, Followers: ${record.get('Twitter')}`);   // Updated column name here
+          console.log(`Successfully updated Twitter followers for ${username}: ${record.get('Twitter')}`);
         });
       });
+    } catch (err) {
+      console.error(`Error processing Twitter username: ${username}`);
+      console.error(err);
     }
-    console.log('Successfully updated Twitter Followers')
-  } catch (err) {
-    console.log(err);
   }
 };
 
 const usernames: Followers = {};
 
-base('Countries').select({   // Updated table name here
+base('Countries').select({
   view: 'Grid view'
 }).eachPage(
   function page(records, fetchNextPage) {
@@ -75,7 +77,7 @@ base('Countries').select({   // Updated table name here
   },
   function done(err) {
     if (err) {
-      console.error(err);
+      console.error("Error during Airtable fetch:", err);
       return;
     }
     fetchAndUpdateTwitterFollowers(usernames);
