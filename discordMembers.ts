@@ -11,7 +11,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 );
 const botToken = process.env.DISCORD_BOT_TOKEN;
 
-const getMemberCount = async (guildId: string): Promise<number> => {
+const getMemberCount = async (guildId: string): Promise<number | undefined> => {
   const url = `https://discord.com/api/v9/guilds/${guildId}?with_counts=true`;
 
   try {
@@ -25,7 +25,7 @@ const getMemberCount = async (guildId: string): Promise<number> => {
   } catch (error) {
     console.error(`Error fetching member count for Guild ID: ${guildId}`);
     console.error("Error:", error);
-    return 0;
+    return undefined;
   }
 };
 
@@ -33,35 +33,36 @@ const fetchAndUpdateDiscordMembers = async (guildIds: {
   [guildId: string]: string;
 }): Promise<void> => {
   for (const guildId in guildIds) {
+    const recordId = guildIds[guildId];
     try {
-      const recordId = guildIds[guildId];
-      const memberCount: number = await getMemberCount(guildId);
+      const memberCount = await getMemberCount(guildId);
+
+      if (memberCount === undefined) {
+        console.error(`Member count for Guild ID: ${guildId} is undefined.`);
+        continue; // Skip to next iteration if member count is undefined
+      }
 
       base("Countries").update(
         [
           {
             id: recordId,
             fields: {
-              Discord: memberCount.toString(),
+              Discord: memberCount,
             },
           },
         ],
         function (err, records) {
           if (err) {
-            console.error(err);
+            console.error(`Error updating Discord for Guild ID: ${guildId}:`, err);
             return;
           }
           records.forEach(function (record) {
-            console.log(
-              `ServerID: ${guildId}, Members: ${record.get("Discord")}`
-            );
+            console.log(`ServerID: ${guildId}, Members: ${record.get("Discord")}`);
           });
         }
       );
-      console.log(`Successfully updated Discord for Guild ID: ${guildId}`);
     } catch (err) {
-      console.log(`Error updating Discord for Guild ID: ${guildId}`);
-      console.log(err);
+      console.error(`Error processing Guild ID: ${guildId}:`, err);
     }
   }
 };
